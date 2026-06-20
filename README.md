@@ -27,12 +27,17 @@ npm run build && node dist/index.js --help
 
 | Command | Purpose | Backend |
 |---|---|---|
-| `auth login` / `logout` / `whoami` | device-code login, identity | NEW |
+| `auth login` / `logout [--revoke]` / `whoami` | device-code login, identity | NEW |
 | `account status` | plan + paid-tier entitlements | NEW (`/me`) |
-| `accounts` | list connected social accounts | reuse |
+| `accounts [--platform/--group-id]` | list connected social accounts | reuse |
+| `groups [--name]` | list channel groups (account presets) | reuse |
 | `workspace` | timezone + default times | reuse |
-| `posts --status --sort` | list posts | NEW (list route) |
-| `schedule --group --min-per-day` | spread drafts across days | NEW + reuse `/posts/schedule` |
+| `posts list [--status/--account-id/--from/--to]` | list posts (cursor pagination) | NEW (list route) |
+| `posts create [--file/--content/--title/--hashtags…]` | upload media + create draft | NEW |
+| `posts schedule <id> --account [--at]` | schedule one draft (low-level) | reuse `/posts/:id/schedule` |
+| `schedule --group --min-per-day [--dry-run]` | smart-spread drafts across days | NEW + reuse `/posts/schedule` |
+
+List commands share `--limit/--cursor/--sort/--order/--all` (cursor pagination, spec §3).
 
 Config lives at `$XDG_CONFIG_HOME/juzpost/config.json` (`~/.config/juzpost`).
 Override base url with `--base <url>` or `JUZPOST_URL`.

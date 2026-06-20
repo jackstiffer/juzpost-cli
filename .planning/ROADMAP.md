@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🟡 **v0.1 CLI MVP** — Phases 1–4 (planned 2026-06-20)
+- ✅ **v0.1 CLI MVP** — Phases 1–4 (built 2026-06-20, to-contract w/ mocked tests; live wiring pending JuzPost API)
 
 ## Phases
 
@@ -21,8 +21,12 @@ with mocked `fetch`; end-to-end wiring waits on the JuzPost `/api/cli/v1/*` mile
 - [x] **Phase 3: Read commands** — `account status`, `accounts`, `groups`, `workspace`, `posts`
   (cursor pagination via `--limit`/`--cursor`/`--all`; filters `--status`, sort `--sort`).
   Human table output + `--json`.
-- [ ] **Phase 4: Upload, create & schedule** — presign → PUT media → `posts create`; the
+- [x] **Phase 4: Upload, create & schedule** — presign → PUT media → `posts create`; the
   headline `schedule` (`--group`, `--min-per-day`, `--dry-run`) + per-post
-  `posts <id> schedule`. Renders the returned schedule plan.
+  `posts schedule <id>`. Renders the returned schedule plan.
 
 </details>
+
+## Backlog (post-MVP)
+- Live E2E wiring + verification once JuzPost `/api/cli/v1/*` exists (separate prerequisite).
+- Packaging/publish: `npm publish`, version, maybe a single-file build.

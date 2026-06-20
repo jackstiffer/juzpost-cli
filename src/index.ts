@@ -9,6 +9,7 @@ import { saveConfig } from './config.js';
 import { render } from './output.js';
 import * as auth from './auth.js';
 import { runList, type ListResult } from './list.js';
+import { uploadMedia } from './upload.js';
 
 const program = new Command();
 program
@@ -107,10 +108,12 @@ program
   .description('Show workspace timezone + default times')
   .action(async () => out(await api('/api/cli/v1/workspace')));
 
-// ── posts (list) ──────────────────────────────────────────────────────────────
+// ── posts (group: list | create | schedule) ──────────────────────────────────
+const posts = program.command('posts').description('List, create, and schedule posts');
+
 withListOpts(
-  program
-    .command('posts')
+  posts
+    .command('list')
     .description('List posts')
     .option('--status <s>', 'filter: draft | scheduled | posted | failed')
     .option('--account-id <id>', 'filter: posts targeting this account')
@@ -118,22 +121,73 @@ withListOpts(
     .option('--to <date>', 'filter: ISO date upper bound'),
 ).action(async (opts) => printList(await runList('/api/cli/v1/posts', opts, ['status', 'accountId', 'from', 'to'])));
 
-// ── schedule (the point of the whole thing) ────────────────────────────────────
+posts
+  .command('create')
+  .description('Create a draft post (optionally uploading media)')
+  .option('--file <path>', 'media file to upload (presign → R2)')
+  .option('--content <text>', 'post body / caption')
+  .option('--title <title>', 'title')
+  .option('--description <desc>', 'description')
+  .option('--hashtags <tag...>', 'hashtags (no # prefix)')
+  .option('--type <type>', 'text | image | video | story')
+  .option('--cover-key <key>', 'R2 key of an already-uploaded cover')
+  .action(async (opts) => {
+    const mediaUrls = opts.file ? [await uploadMedia(opts.file)] : undefined;
+    const res = await api<{ id: string }>('/api/cli/v1/posts', {
+      method: 'POST',
+      body: {
+        content: opts.content,
+        mediaUrls,
+        title: opts.title,
+        description: opts.description,
+        hashtags: opts.hashtags,
+        type: opts.type,
+        coverR2Key: opts.coverKey,
+      },
+    });
+    out(res);
+  });
+
+posts
+  .command('schedule <postId>')
+  .description('Schedule one draft (low-level)')
+  .requiredOption('--account <id...>', 'social account id(s), 1–10')
+  .option('--at <iso>', 'publish time, ISO 8601 UTC; omit = post now')
+  .action(async (postId, opts) => {
+    const res = await api(`/api/cli/v1/posts/${postId}/schedule`, {
+      method: 'POST',
+      body: { publishAt: opts.at, socialAccountIds: opts.account },
+    });
+    out(res);
+  });
+
+// ── schedule (the headline) ───────────────────────────────────────────────────
 program
   .command('schedule')
-  .description('Smart-schedule draft posts across a group')
+  .description('Smart-schedule draft posts across a group at preset times')
   .requiredOption('--group <name>', 'account group (channel group) name')
   .requiredOption('--min-per-day <n>', 'minimum posts per day', (v) => parseInt(v, 10))
   .option('--post-id <id...>', 'specific draft post id(s); default = all drafts')
+  .option('--start-date <date>', 'first day to schedule (ISO date); default = tomorrow')
+  .option('--times <hh:mm...>', 'override workspace default times')
+  .option('--dry-run', 'compute and print the plan without scheduling')
   .action(async (opts) => {
-    // TODO(api): resolve group->accountIds + workspace tz/defaultTimes, spread across days
-    // to satisfy min-per-day, then call the existing /posts/schedule service per post.
-    out(
-      await api('/api/cli/v1/schedule', {
-        method: 'POST',
-        body: { group: opts.group, minPerDay: opts.minPerDay, postIds: opts.postId },
-      }),
-    );
+    const res = await api<{ scheduled?: unknown[]; skipped?: unknown[]; plan?: unknown }>('/api/cli/v1/schedule', {
+      method: 'POST',
+      body: {
+        group: opts.group,
+        minPerDay: opts.minPerDay,
+        postIds: opts.postId,
+        startDate: opts.startDate,
+        times: opts.times,
+        dryRun: opts.dryRun,
+      },
+    });
+    if (program.opts().json) return out(res);
+    if (opts.dryRun) console.log('DRY RUN — nothing scheduled\n');
+    if (res.plan) console.log(render(res.plan, false) + '\n');
+    console.log(render(res.scheduled ?? [], false));
+    if (res.skipped?.length) console.log('\nSkipped:\n' + render(res.skipped, false));
   });
 
 program.parseAsync().catch((e: unknown) => {
