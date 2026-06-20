@@ -145,7 +145,7 @@ Those are dashboard-first. `juzpost-cli` is CLI-first and scriptable — designe
 
 ## Status
 
-`v0.1.x` — early release. The command surface is stable and built to the documented API contract ([`docs/api-spec.md`](./docs/api-spec.md)). See the [JuzPost docs](https://www.juzpost.com) for account setup.
+`v0.1.x` — early release. The command surface is stable and built to the JuzPost API. See [JuzPost](https://www.juzpost.com) for account setup and API details.
 
 ## License
 

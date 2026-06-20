@@ -2,3 +2,7 @@ node_modules/
 dist/
 *.log
 .DS_Store
+
+# internal artifacts — kept local, not for the public repo
+.planning/
+docs/
