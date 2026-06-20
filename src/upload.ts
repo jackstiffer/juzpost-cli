@@ -23,12 +23,12 @@ export async function uploadMedia(filePath: string, opts: { relativeKey?: string
   const contentType = contentTypeFor(filePath);
   const relativeKey = opts.relativeKey ?? `media/${basename(filePath)}`;
 
+  const bytes = readFileSync(filePath);
   const { signedUrl, resolvedKey } = await api<{ signedUrl: string; resolvedKey: string }>(
     '/api/cli/v1/storage/presign',
-    { method: 'POST', body: { relativeKey, contentType, operation: 'upload' } },
+    { method: 'POST', body: { relativeKey, contentType, operation: 'upload', contentLength: bytes.length } },
   );
 
-  const bytes = readFileSync(filePath);
   const res = await fetch(signedUrl, { method: 'PUT', headers: { 'content-type': contentType }, body: bytes });
   if (!res.ok) throw new ApiError(res.status, `R2 upload failed (HTTP ${res.status})`);
 
