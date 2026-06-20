@@ -8,6 +8,7 @@ import { api, ApiError } from './api.js';
 import { saveConfig } from './config.js';
 import { render } from './output.js';
 import * as auth from './auth.js';
+import { runList, type ListResult } from './list.js';
 
 const program = new Command();
 program
@@ -24,6 +25,21 @@ program.hook('preAction', (thisCmd) => {
 });
 
 const out = (data: unknown) => console.log(render(data, !!program.opts().json));
+
+// Attach the shared cursor-pagination flags to a list command.
+const withListOpts = (c: Command) =>
+  c
+    .option('--limit <n>', 'page size (1–100)')
+    .option('--cursor <c>', 'pagination cursor from a previous page')
+    .option('--sort <field>', 'sort field')
+    .option('--order <dir>', 'asc | desc')
+    .option('--all', 'follow cursors and return everything');
+
+const printList = (r: ListResult) => {
+  if (program.opts().json) return console.log(JSON.stringify(r, null, 2));
+  console.log(render(r.data, false));
+  if (r.hasMore && r.nextCursor) console.log(`\n… more — pass --cursor ${r.nextCursor} (or --all)`);
+};
 
 // ── auth ─────────────────────────────────────────────────────────────────────
 const authCmd = program.command('auth').description('Login, logout, identity');
@@ -68,31 +84,39 @@ program
     out(await api('/api/cli/v1/me')); // TODO(api): GET /api/cli/v1/me (plan + entitlement gate)
   });
 
-// ── accounts / workspace (reuse existing service fns behind token guard) ───────
-program
-  .command('accounts')
-  .description('List connected social accounts')
-  .action(async () => {
-    out(await api('/api/cli/v1/accounts')); // reuse: GET /api/v1/accounts service fn
-  });
+// ── accounts (list) ───────────────────────────────────────────────────────────
+withListOpts(
+  program
+    .command('accounts')
+    .description('List connected social accounts')
+    .option('--platform <p>', 'filter: tiktok | youtube | instagram | x')
+    .option('--group-id <id>', 'filter: only accounts in this channel group'),
+).action(async (opts) => printList(await runList('/api/cli/v1/accounts', opts, ['platform', 'groupId'])));
 
+// ── groups (list) ─────────────────────────────────────────────────────────────
+withListOpts(
+  program
+    .command('groups')
+    .description('List channel groups (account presets)')
+    .option('--name <q>', 'filter: name contains'),
+).action(async (opts) => printList(await runList('/api/cli/v1/groups', opts, ['name'])));
+
+// ── workspace (single object) ─────────────────────────────────────────────────
 program
   .command('workspace')
   .description('Show workspace timezone + default times')
-  .action(async () => {
-    out(await api('/api/cli/v1/workspace')); // reuse: GET /api/workspace service fn
-  });
+  .action(async () => out(await api('/api/cli/v1/workspace')));
 
-// ── posts ──────────────────────────────────────────────────────────────────────
-program
-  .command('posts')
-  .description('List posts')
-  .option('--status <status>', 'filter: draft | scheduled | posted')
-  .option('--sort <field>', 'sort field, e.g. publishAt', 'publishAt')
-  .action(async (opts) => {
-    // TODO(api): GET /api/cli/v1/posts?status=&sort=  (NEW — no list route exists today)
-    out(await api('/api/cli/v1/posts', { query: { status: opts.status, sort: opts.sort } }));
-  });
+// ── posts (list) ──────────────────────────────────────────────────────────────
+withListOpts(
+  program
+    .command('posts')
+    .description('List posts')
+    .option('--status <s>', 'filter: draft | scheduled | posted | failed')
+    .option('--account-id <id>', 'filter: posts targeting this account')
+    .option('--from <date>', 'filter: ISO date lower bound')
+    .option('--to <date>', 'filter: ISO date upper bound'),
+).action(async (opts) => printList(await runList('/api/cli/v1/posts', opts, ['status', 'accountId', 'from', 'to'])));
 
 // ── schedule (the point of the whole thing) ────────────────────────────────────
 program

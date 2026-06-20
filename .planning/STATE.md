@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: CLI MVP
 status: executing
-stopped_at: Phase 2 (Auth) complete — device-code login/logout(--revoke)/whoami in src/auth.ts, build green, 15 tests pass
+stopped_at: Phase 3 (Read commands) complete — accounts/groups/workspace/posts + account status; cursor pagination via src/list.ts; build green, 18 tests pass
 last_updated: "2026-06-20"
 last_activity: 2026-06-20
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 0
   completed_plans: 0
-  percent: 50
+  percent: 75
 ---
 
 # Project State
@@ -29,4 +29,4 @@ See: .planning/ROADMAP.md · contract: docs/api-spec.md
 
 ## Current Position
 
-Phase: 2 (Auth) — COMPLETE · Next: Phase 3 (Read commands)
+Phase: 3 (Read commands) — COMPLETE · Next: Phase 4 (Upload, create & schedule)

@@ -18,8 +18,8 @@ with mocked `fetch`; end-to-end wiring waits on the JuzPost `/api/cli/v1/*` mile
 - [x] **Phase 2: Auth** — `login` (device-code: start → poll `auth/token` with `428` pending /
   `410` expired / timeout), `logout` (+ `--revoke` → `DELETE /auth/token`), `whoami`. Token
   persistence + clear error states.
-- [ ] **Phase 3: Read commands** — `account status`, `accounts`, `groups`, `workspace`, `posts`
-  (cursor pagination via `--limit`/`--cursor`/auto-follow; filters `--status`, sort `--sort`).
+- [x] **Phase 3: Read commands** — `account status`, `accounts`, `groups`, `workspace`, `posts`
+  (cursor pagination via `--limit`/`--cursor`/`--all`; filters `--status`, sort `--sort`).
   Human table output + `--json`.
 - [ ] **Phase 4: Upload, create & schedule** — presign → PUT media → `posts create`; the
   headline `schedule` (`--group`, `--min-per-day`, `--dry-run`) + per-post
