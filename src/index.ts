@@ -5,8 +5,9 @@
 // 404 until the JuzPost `/api/cli/v1/*` milestone lands. Each TODO marks the missing route.
 import { Command } from 'commander';
 import { api, ApiError } from './api.js';
-import { saveConfig, clearToken, loadConfig } from './config.js';
+import { saveConfig } from './config.js';
 import { render } from './output.js';
+import * as auth from './auth.js';
 
 const program = new Command();
 program
@@ -25,39 +26,36 @@ program.hook('preAction', (thisCmd) => {
 const out = (data: unknown) => console.log(render(data, !!program.opts().json));
 
 // ── auth ─────────────────────────────────────────────────────────────────────
-const auth = program.command('auth').description('Login, logout, identity');
+const authCmd = program.command('auth').description('Login, logout, identity');
 
-auth
+authCmd
   .command('login')
   .description('Browser device-code login; stores a revocable CLI token')
-  .action(async () => {
-    // TODO(api): POST /api/cli/v1/auth/start -> { deviceCode, verifyUrl, interval }
-    //            then poll POST /api/cli/v1/auth/token { deviceCode } -> { token }
+  .option('--device-name <name>', 'label this token in JuzPost settings')
+  .action(async (opts) => {
     // Single login method by design — no paste-token path. Manual tokens stay in the dashboard.
-    const start = await api<{ deviceCode: string; verifyUrl: string; interval?: number }>(
-      '/api/cli/v1/auth/start',
-      { method: 'POST', auth: false },
-    );
-    console.log(`Open this URL in your browser to approve:\n  ${start.verifyUrl}\n`);
-    const token = await pollForToken(start.deviceCode, start.interval ?? 3);
-    saveConfig({ token });
+    await auth.login({
+      deviceName: opts.deviceName,
+      onPrompt: (url) => console.log(`Open this URL in your browser to approve:\n  ${url}\n`),
+    });
     out('Logged in. Token stored (revoke anytime in JuzPost settings).');
   });
 
-auth
+authCmd
   .command('logout')
-  .description('Delete the stored token locally')
-  .action(() => {
-    clearToken();
-    out('Logged out. (To revoke server-side, delete the token in JuzPost settings.)');
+  .description('Clear the stored token locally')
+  .option('--revoke', 'also hard-delete the token server-side')
+  .action(async (opts) => {
+    await auth.logout({ revoke: opts.revoke });
+    out(opts.revoke ? 'Logged out and token revoked.' : 'Logged out (token still valid server-side until deleted in settings).');
   });
 
-auth
+authCmd
   .command('whoami')
   .description('Show the identity behind the stored token')
   .action(async () => {
-    if (!loadConfig().token) return out('Not logged in.');
-    out(await api('/api/cli/v1/me')); // TODO(api): GET /api/cli/v1/me
+    const me = auth.whoami();
+    out(me === null ? 'Not logged in.' : await me);
   });
 
 // ── account ──────────────────────────────────────────────────────────────────
@@ -113,25 +111,6 @@ program
       }),
     );
   });
-
-async function pollForToken(deviceCode: string, intervalSec: number): Promise<string> {
-  // ponytail: naive fixed-interval poll, ~5min cap. Good enough for an interactive login.
-  for (let i = 0; i < Math.ceil(300 / intervalSec); i++) {
-    await new Promise((r) => setTimeout(r, intervalSec * 1000));
-    try {
-      const r = await api<{ token: string }>('/api/cli/v1/auth/token', {
-        method: 'POST',
-        auth: false,
-        body: { deviceCode },
-      });
-      if (r.token) return r.token;
-    } catch (e) {
-      if (e instanceof ApiError && e.status === 428) continue; // pending approval
-      throw e;
-    }
-  }
-  throw new Error('Login timed out waiting for browser approval.');
-}
 
 program.parseAsync().catch((e: unknown) => {
   const msg = e instanceof Error ? e.message : String(e);
