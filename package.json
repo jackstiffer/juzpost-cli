@@ -1,6 +1,6 @@
 {
   "name": "juzpost-cli",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Social media scheduling from the terminal — schedule & auto-post short-form videos to TikTok, YouTube Shorts & Instagram. A fast, scriptable CLI social media scheduler.",
   "keywords": [
     "social-media-scheduling",
@@ -28,12 +28,24 @@
   "license": "MIT",
   "author": "Jiiva Durai <jackstiffer1@gmail.com>",
   "homepage": "https://www.juzpost.com",
-  "repository": { "type": "git", "url": "git+https://github.com/jackstiffer/juzpost-cli.git" },
-  "bugs": { "url": "https://github.com/jackstiffer/juzpost-cli/issues" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jackstiffer/juzpost-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jackstiffer/juzpost-cli/issues"
+  },
   "type": "module",
-  "bin": { "juzpost": "dist/index.js" },
-  "files": ["dist", "CHANGELOG.md"],
-  "engines": { "node": ">=18" },
+  "bin": {
+    "juzpost": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
