@@ -29,4 +29,5 @@ with mocked `fetch`; end-to-end wiring waits on the JuzPost `/api/cli/v1/*` mile
 
 ## Backlog (post-MVP)
 - Live E2E wiring + verification once JuzPost `/api/cli/v1/*` exists (separate prerequisite).
+- **Error parsing:** the CLI namespace returns the structured envelope `{ error: { code, message } }` (decided during JuzPost Phase 37). Update `src/api.ts` to read `data.error?.message` (currently reads `data.error` as a string → would print `[object Object]`).
 - Packaging/publish: `npm publish`, version, maybe a single-file build.

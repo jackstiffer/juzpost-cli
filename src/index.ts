@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // JuzPost CLI — command tree mirrors the Higgsfield CLI shape (subcommand groups,
 // global --json, --wait-style polling). Talks to the token-only /api/cli/v1/* namespace.
-// ponytail: handlers are wired but most backend endpoints are NOT built yet — they will
-// 404 until the JuzPost `/api/cli/v1/*` milestone lands. Each TODO marks the missing route.
+// Backend endpoints live in the JuzPost repo's /api/cli/v1/* namespace.
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import { Command } from 'commander';
 import { api, ApiError } from './api.js';
 import { saveConfig } from './config.js';
@@ -11,11 +13,14 @@ import * as auth from './auth.js';
 import { runList, type ListResult } from './list.js';
 import { uploadMedia } from './upload.js';
 
+// Single source of truth for the version — ../package.json (resolves from both dist/ and src/).
+const { version } = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../package.json'), 'utf8'));
+
 const program = new Command();
 program
   .name('juzpost')
   .description('Schedule clips to JuzPost from the terminal')
-  .version('0.0.1')
+  .version(version)
   .option('--json', 'print raw JSON responses')
   .option('--base <url>', 'override API base url (persists to config)');
 

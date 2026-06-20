@@ -28,7 +28,13 @@ export async function api<T = unknown>(path: string, opts: Opts = {}): Promise<T
   const text = await res.text();
   const data = text ? safeJson(text) : undefined;
   if (!res.ok) {
-    const msg = (data as { error?: string })?.error || res.statusText || 'request failed';
+    // /api/cli/v1/* returns { error: { code, message } }; the forwarded schedule routes
+    // return { error: "string" }. Handle both shapes.
+    const errField = (data as { error?: unknown } | undefined)?.error;
+    const msg =
+      typeof errField === 'string'
+        ? errField
+        : (errField as { message?: string } | undefined)?.message || res.statusText || 'request failed';
     throw new ApiError(res.status, `${msg} (HTTP ${res.status})`);
   }
   return data as T;

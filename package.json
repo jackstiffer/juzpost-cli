@@ -1,14 +1,19 @@
 {
   "name": "juzpost-cli",
-  "version": "0.0.1",
-  "description": "CLI for JuzPost — login + smart-schedule clips from the terminal",
+  "version": "0.1.0",
+  "description": "CLI for JuzPost — login + smart-schedule short-form clips from the terminal",
+  "keywords": ["juzpost", "cli", "social", "scheduler", "tiktok", "youtube", "shorts", "clips"],
+  "license": "MIT",
+  "author": "Jiiva Durai <jackstiffer1@gmail.com>",
   "type": "module",
   "bin": { "juzpost": "dist/index.js" },
-  "engines": { "node": ">=22" },
+  "files": ["dist"],
+  "engines": { "node": ">=18" },
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
-    "test": "node --import tsx --test test/*.test.ts"
+    "test": "node --import tsx --test test/*.test.ts",
+    "prepublishOnly": "npm run build && npm test"
   },
   "dependencies": {
     "commander": "^13.0.0"
