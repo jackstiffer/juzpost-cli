@@ -1,6 +1,6 @@
 {
   "name": "juzpost-cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Social media scheduling from the terminal — schedule & auto-post short-form videos to TikTok, YouTube Shorts & Instagram. A fast, scriptable CLI social media scheduler.",
   "keywords": [
     "social-media-scheduling",

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+
+- Send `contentLength` with upload presign requests — the JuzPost API now
+  requires it and enforces per-content-type size limits before issuing a URL.
+
 ## 0.1.1
 
 - Rewrote the README for discoverability: detailed usage, smart-scheduling
