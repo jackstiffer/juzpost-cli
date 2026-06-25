@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4
+
+- `auth login` now auto-opens the browser to the approval page (still prints the
+  URL as a fallback for headless/SSH sessions).
+- Docs: corrected login command to `juzpost auth login` throughout the README.
+
 ## 0.1.2
 
 - Send `contentLength` with upload presign requests — the JuzPost API now

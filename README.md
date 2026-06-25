@@ -11,7 +11,7 @@ It's the command-line client for [JuzPost](https://www.juzpost.com), a social me
 
 ```bash
 npm install -g juzpost-cli
-juzpost login
+juzpost auth login
 juzpost schedule --group "all-channels" --min-per-day 2
 ```
 
@@ -46,7 +46,7 @@ You need Node.js 18 or newer and a free [JuzPost](https://www.juzpost.com) accou
 
 ```bash
 # 1. Log in. This opens your browser to approve. No password or API key to paste.
-juzpost login
+juzpost auth login
 
 # 2. See your connected accounts, groups, and workspace
 juzpost accounts
@@ -71,7 +71,7 @@ juzpost schedule --group "all-channels" --min-per-day 2 --dry-run
 
 | Command | What it does |
 |---|---|
-| `juzpost login` / `logout` / `whoami` | Device-code login, sign out, show identity |
+| `juzpost auth login` / `logout` / `whoami` | Device-code login, sign out, show identity |
 | `juzpost account status` | Plan and entitlements |
 | `juzpost accounts [--platform --group-id]` | List connected social accounts |
 | `juzpost groups [--name]` | List channel groups (account presets) |
@@ -125,7 +125,7 @@ juzpost schedule --group "shorts" --min-per-day 3 --times 09:30 14:00 19:00
 ## FAQ
 
 **How do I schedule social media posts from the terminal?**
-Install `juzpost-cli`, run `juzpost login`, create drafts with `juzpost posts create`, then run `juzpost schedule --group <name> --min-per-day <n>`.
+Install `juzpost-cli`, run `juzpost auth login`, create drafts with `juzpost posts create`, then run `juzpost schedule --group <name> --min-per-day <n>`.
 
 **Which platforms are supported?**
 Short-form video destinations connected to your JuzPost workspace. That covers TikTok, YouTube Shorts, Instagram, and X.

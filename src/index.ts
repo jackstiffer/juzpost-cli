@@ -5,6 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { spawn } from 'node:child_process';
 import { Command } from 'commander';
 import { api, ApiError } from './api.js';
 import { saveConfig } from './config.js';
@@ -32,6 +33,17 @@ program.hook('preAction', (thisCmd) => {
 
 const out = (data: unknown) => console.log(render(data, !!program.opts().json));
 
+// Best-effort browser open via the native platform opener. Detached + errors ignored
+// so headless/SSH sessions fall back to the printed URL instead of crashing login.
+const openBrowser = (url: string) => {
+  const cmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
+  try {
+    spawn(cmd, [url], { stdio: 'ignore', detached: true, shell: process.platform === 'win32' }).unref();
+  } catch {
+    // ignore — the URL is printed regardless
+  }
+};
+
 // Attach the shared cursor-pagination flags to a list command.
 const withListOpts = (c: Command) =>
   c
@@ -58,7 +70,10 @@ authCmd
     // Single login method by design — no paste-token path. Manual tokens stay in the dashboard.
     await auth.login({
       deviceName: opts.deviceName,
-      onPrompt: (url) => console.log(`Open this URL in your browser to approve:\n  ${url}\n`),
+      onPrompt: (url) => {
+        openBrowser(url);
+        console.log(`Opening your browser to approve… if it doesn't open, visit:\n  ${url}\n`);
+      },
     });
     out('Logged in. Token stored (revoke anytime in JuzPost settings).');
   });
